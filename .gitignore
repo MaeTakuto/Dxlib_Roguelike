@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+x64/
+*.vs
+ManagedDxlGame/graphics/
+ManagedDxlGame/mesh/
+ManagedDxlGame/sound/
+ManagedDxlGame/x64/
+ManagedDxlGame/*.txt
