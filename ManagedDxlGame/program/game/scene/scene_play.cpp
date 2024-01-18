@@ -3,15 +3,17 @@
 #include "../manager/resource_manager.h"
 #include "scene_title.h"
 #include "scene_play.h"
-#include "../dungeon/dng_rect.h"
+#include "../dungeon/dungeon_manager.h"
 #include "../common/camera.h"
 #include "../character/player.h"
+#include "../manager/enemy_manager.h"
 
 
 ScenePlay::ScenePlay() {
 
-	dng_generator_ = std::make_shared<DungeonManager>();
+	dungeon_mgr_ = std::make_shared<DungeonManager>();
 	camera_ = std::make_shared<Camera>();
+	enemy_mgr_ = std::make_shared<EnemyManager>();
 
 	terrain_data_.resize(DungeonManager::FIELD_HEIGHT);
 	map_data_.resize(DungeonManager::FIELD_HEIGHT);
@@ -75,10 +77,11 @@ void ScenePlay::draw() {
 	}
 
 	player_->draw(camera_);
+	enemy_mgr_->draw(camera_);
 
 	// ======= デバッグ ========
 	 // DrawStringEx(100, 100, -1, "シーンプレイ");
-	 dng_generator_->displayAreaNumber(camera_);
+	 dungeon_mgr_->displayAreaNumber(camera_);
 }
 
 // 
@@ -94,9 +97,10 @@ void ScenePlay::charaUpdate(float delta_time) {
 // ダンジョン生成
 bool ScenePlay::seqGenerateDungeon(const float delta_time) {
 	
-	dng_generator_->generateDungeon();
-	terrain_data_ = dng_generator_->getTerrainData();
-	map_data_ = dng_generator_->getMapData();
+	enemy_mgr_->deathAllEnemys();
+	dungeon_mgr_->generateDungeon();
+	terrain_data_ = dungeon_mgr_->getTerrainData();
+	map_data_ = dungeon_mgr_->getMapData();
 
 	for (int y = 0; y < map_data_.size(); y++) {
 		for (int x = 0; x < map_data_[y].size(); x++) {
@@ -104,6 +108,10 @@ bool ScenePlay::seqGenerateDungeon(const float delta_time) {
 				tnl::DebugTrace("player x = %d, y = %d\n", x, y);
 				tnl::Vector3 pos = { static_cast<float>(x) , static_cast<float>(y), 0 };
 				player_->setPos(pos);
+			}
+			else if (map_data_[y][x] == static_cast<int>(eMapData::ENEMY)) {
+				tnl::DebugTrace("enemy x = %d, y = %d\n", x, y);
+				enemy_mgr_->spawnEnemy(tnl::Vector3{ static_cast<float>(x) , static_cast<float>(y), 0});
 			}
 		}
 	}
@@ -124,10 +132,10 @@ bool ScenePlay::seqMain(const float delta_time) {
 		main_seq_.change(&ScenePlay::seqGenerateDungeon);
 	}
 
-	in_dungeon_seq_.update(delta_time);
+	// in_dungeon_seq_.update(delta_time);
 
-	// camera_->control();
-	camera_->setPos(player_->getPos());
+	camera_->control();
+	// camera_->setPos(player_->getPos());
 
 
 	return true;

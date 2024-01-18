@@ -23,6 +23,11 @@ enum class eMapData {
 	ENEMY
 };
 
+enum class ePlace {
+	ROAD = 0,
+	ROOM
+};
+
 // 区画のデータクラス
 class Rect {
 public:
@@ -125,6 +130,10 @@ private:
 	// マップデータの作成（ 地形データ、各キャラの位置データ ）
 	void generateMapData();
 
+	// プレイヤーの生成位置を決める
 	void spawnPlayer();
+
+	// 敵の生成位置を決める
+	void spawnEnemy();
 
 };

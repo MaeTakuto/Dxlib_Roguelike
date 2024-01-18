@@ -9,12 +9,16 @@ public:
 	Player();
 	~Player();
 
-	void update(float delta_time);
-	void draw(const std::shared_ptr<Camera> camera);
+	void update(float delta_time) override;
+	void draw(const std::shared_ptr<Camera> camera) override;
 
 	inline const tnl::Vector3& getPos() override { return pos_; }
+	inline void setPos(const tnl::Vector3& pos) override { pos_ = pos; next_pos_ = pos_; }
+
 	inline const tnl::Vector3& getNextPos() override { return next_pos_; }
-	inline void setPos(tnl::Vector3& pos) override { pos_ = pos; next_pos_ = pos_; }
+	
+	inline bool isAlive() { return is_alive_; }
+
 	inline const eActState& getActState() override { return act_state_; }
 
 	inline void beginAct() { act_state_ = eActState::IDLE; };
@@ -24,18 +28,11 @@ public:
 
 		act_state_ = eActState::IDLE;
 		is_collision_ = false;
-		// sequence_.undo();
 		sequence_.immediatelyChange(&Player::seqIdle);
 		next_pos_ = pos_;
-		
 	}
 
 private:
-	std::vector< std::vector<int> > gpc_hdl_;
-	std::vector< std::vector<tnl::CsvCell> > gpc_hdl_data_;
-
-	tnl::Vector3 pos_ = { 0, 0, 0 };
-	tnl::Vector3 next_pos_ = { 0, 0, 0 };
 
 	tnl::Sequence<Player> sequence_ = tnl::Sequence<Player>(this, &Player::seqIdle);
 

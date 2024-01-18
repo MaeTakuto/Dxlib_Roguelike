@@ -11,20 +11,21 @@ Player::Player() {
 
 	gpc_hdl_.resize(4);
 
-	for (int i = 0; i < gpc_hdl_data_.size(); i++) {
+	for (int i = 1; i < gpc_hdl_data_.size(); i++) {
 		
-		gpc_hdl_[i].resize( gpc_hdl_data_[1][i].getInt() );
+		gpc_hdl_[i - 1].resize( gpc_hdl_data_[i][1].getInt() );
 
-		gpc_hdl_[i] = ResourceManager::getInstance()->loadAnimation
-		(gpc_hdl_data_[0][i].getString(),
-		 gpc_hdl_data_[1][i].getInt(),
-		 gpc_hdl_data_[2][i].getInt(),
-		 gpc_hdl_data_[3][i].getInt(),
+		gpc_hdl_[i - 1] = ResourceManager::getInstance()->loadAnimation
+		(gpc_hdl_data_[i][0].getString(),
+		 gpc_hdl_data_[i][1].getInt(),
+		 gpc_hdl_data_[i][2].getInt(),
+		 gpc_hdl_data_[i][3].getInt(),
 		 GameManager::CHIP_SIZE,
 		 GameManager::CHIP_SIZE
 		);
 	}
 
+	dir_ = eDir::DOWN;
 	act_state_ = eActState::IDLE;
 	is_collision_ = false;
 
@@ -46,7 +47,7 @@ void Player::draw(std::shared_ptr<Camera> camera) {
 		- camera->getPos() + tnl::Vector3(DXE_WINDOW_WIDTH >> 1, DXE_WINDOW_HEIGHT >> 1, 0);
 
 	DrawExtendGraph(draw_pos.x, draw_pos.y, draw_pos.x + GameManager::DRAW_CHIP_SIZE, draw_pos.y + GameManager::DRAW_CHIP_SIZE,
-		gpc_hdl_[1][1], true);
+		gpc_hdl_[static_cast<int>(dir_)][0], true);
 }
 
 bool Player::seqIdle(const float delta_time) {
@@ -55,24 +56,28 @@ bool Player::seqIdle(const float delta_time) {
 
 	// ˆÚ“®“ü—Í
 	if (tnl::Input::IsKeyDown(eKeys::KB_W, eKeys::KB_UP)) {
+		dir_ = eDir::UP;
 		act_state_ = eActState::ACT;
 		next_pos_.y += -1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_S, eKeys::KB_DOWN))	{
+		dir_ = eDir::DOWN;
 		act_state_ = eActState::ACT;
 		next_pos_.y +=  1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_A, eKeys::KB_LEFT))	{ 
+		dir_ = eDir::LEFT;
 		act_state_ = eActState::ACT;
 		next_pos_.x += -1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_D, eKeys::KB_RIGHT)) {
+		dir_ = eDir::RIGHT;
 		act_state_ = eActState::ACT;
 		next_pos_.x +=  1;
 		sequence_.change(&Player::seqMove);

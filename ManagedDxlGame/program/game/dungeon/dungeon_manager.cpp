@@ -1,5 +1,5 @@
 #include "../../dxlib_ext/dxlib_ext.h"
-#include "dng_rect.h"
+#include "dungeon_manager.h"
 #include "../common/camera.h"
 
 
@@ -42,6 +42,9 @@ void DungeonManager::generateDungeon() {
 	createRoom();
 	generateField();
 
+	order_connect_rooms_[order_index_] = rand() % area_count_;
+	areas_[ order_connect_rooms_[order_index_] ].is_connect = true;
+
 	// 通路を作成
 	while (order_index_ + 1 < area_count_) {
 		connectRoom(order_connect_rooms_[order_index_]);
@@ -50,6 +53,7 @@ void DungeonManager::generateDungeon() {
 
 	generateMapData();
 	spawnPlayer();
+	spawnEnemy();
 
 }
 
@@ -80,8 +84,7 @@ void DungeonManager::areaDataInit() {
 	areas_[0].area.y = 0;
 	areas_[0].area.width = FIELD_WIDTH;
 	areas_[0].area.height = FIELD_HEIGHT;
-	areas_[0].is_connect = true;;
-
+	
 	order_index_ = 0;
 	connect_error_count_ = 0;
 }
@@ -220,41 +223,81 @@ void DungeonManager::connectRoom(int area_index) {
 		tnl::DebugTrace("d1 index = %d\n", index);
 
 		// 両ルームの適当な座標指定
-		dx1 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
+		/*dx1 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
 		dy1 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
 
 		index = order_connect_rooms_[order_index_];
 		tnl::DebugTrace("d2 index = %d\n", index);
 		dx2 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
-		dy2 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
+		dy2 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);*/
 
-		tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
-
-		connect_error_count_ = 0;
+		//tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 
 		// 各部屋から通路を伸ばし
 		// 
 		switch (areas_[area_index].connect_area_dir) {
 		case eDir::UP:
+			// 両ルームの適当な座標指定
+			index = order_connect_rooms_[order_index_ - 1 - connect_error_count_];
+			dx1 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
+			dy1 = areas_[index].room.y;
+
+			index = order_connect_rooms_[order_index_];
+			tnl::DebugTrace("d2 index = %d\n", index);
+			dx2 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
+			dy2 = areas_[index].room.y + areas_[index].room.height - 1 - rand() % (ROOM_AND_ROAD_SPACE + 1);
+			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 			tnl::DebugTrace("上通路作成\n");
 			connectUpAndDownRooms(dx2, dy2, dx1, dy1);
 			break;
 
 		case eDir::DOWN:
+			// 両ルームの適当な座標指定
+			index = order_connect_rooms_[order_index_ - 1 - connect_error_count_];
+			dx1 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
+			dy1 = areas_[index].room.y + areas_[index].room.height - 1 - rand() % (ROOM_AND_ROAD_SPACE + 1);
+
+			index = order_connect_rooms_[order_index_];
+			tnl::DebugTrace("d2 index = %d\n", index);
+			dx2 = random(areas_[index].room.x + ROOM_AND_ROAD_SPACE, areas_[index].room.x + areas_[index].room.width - 1 - ROOM_AND_ROAD_SPACE);
+			dy2 = areas_[index].room.y;
+			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 			tnl::DebugTrace("下通路作成\n");
 			connectUpAndDownRooms(dx1, dy1, dx2, dy2);
 			break;
 
 		case eDir::LEFT:
+			// 両ルームの適当な座標指定
+			index = order_connect_rooms_[order_index_ - 1 - connect_error_count_];
+			dx1 = areas_[index].room.x;
+			dy1 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
+
+			index = order_connect_rooms_[order_index_];
+			tnl::DebugTrace("d2 index = %d\n", index);
+			dx2 = areas_[index].room.x + areas_[index].room.width - 1 - rand() % ( ROOM_AND_ROAD_SPACE + 1 );
+			dy2 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
+			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 			tnl::DebugTrace("左通路作成\n");
 			connectLeftAndRightRooms(dx2, dy2, dx1, dy1);
 			break;
 
 		case eDir::RIGHT:
+			// 両ルームの適当な座標指定
+			index = order_connect_rooms_[order_index_ - 1 - connect_error_count_];
+			dx1 = areas_[index].room.x + areas_[index].room.width - 1 - rand() % (ROOM_AND_ROAD_SPACE + 1);
+			dy1 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
+
+			index = order_connect_rooms_[order_index_];
+			tnl::DebugTrace("d2 index = %d\n", index);
+			dx2 = areas_[index].room.x;
+			dy2 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
+			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 			tnl::DebugTrace("左通路作成\n");
 			connectLeftAndRightRooms(dx1, dy1, dx2, dy2);
 			break;
 		}
+
+		connect_error_count_ = 0;
 	}
 	// 見つかった場合
 	else {
@@ -529,6 +572,8 @@ void DungeonManager::connectUpAndDownRooms(int up_x, int up_y, int down_x, int d
 		while (down_x != up_x) {
 			if (down_x < up_x) down_x++;
 			else down_x--;
+
+			/*if (terrain_data_[down_y][down_x] == static_cast<int>(eMapData::GROUND)) break;*/
 			terrain_data_[down_y][down_x] = static_cast<int>(eMapData::GROUND);
 		}
 	}
@@ -802,4 +847,23 @@ void DungeonManager::spawnPlayer() {
 	tnl::DebugTrace("player x = %d, y = %d\n", spawn_x, spawn_y);
 	map_data_[spawn_y][spawn_x] = static_cast<int>( eMapData::PLAYER );
 
+}
+
+// 
+void DungeonManager::spawnEnemy() {
+
+	int spawn_num = 0;
+
+	while (spawn_num < 8) {
+		int area_index = rand() % area_count_;
+
+		int spawn_x = rand() % areas_[area_index].room.width + areas_[area_index].room.x;
+		int spawn_y = rand() % areas_[area_index].room.height + areas_[area_index].room.y;
+
+		if (map_data_[spawn_y][spawn_x] == static_cast<int>(eMapData::GROUND)) {
+			tnl::DebugTrace("enemy[%d] x = %d, y = %d\n", spawn_num, spawn_x, spawn_y);
+			map_data_[spawn_y][spawn_x] = static_cast<int>(eMapData::ENEMY);
+			spawn_num++;
+		}
+	}
 }

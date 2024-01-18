@@ -1,9 +1,10 @@
-#pragma onc
+#pragma once
 #include "../base/scene_base.h"
 
 class DungeonManager;
 class Camera;
 class Player;
+class EnemyManager;
 
 class ScenePlay : public SceneBase {
 public:
@@ -19,9 +20,10 @@ private:
 	tnl::Sequence<ScenePlay> main_seq_ = tnl::Sequence<ScenePlay>(this, &ScenePlay::seqGenerateDungeon);
 	tnl::Sequence<ScenePlay> in_dungeon_seq_ = tnl::Sequence<ScenePlay>(this, &ScenePlay::seqPlayerAct);
 
-	std::shared_ptr<DungeonManager> dng_generator_ = nullptr;
+	std::shared_ptr<DungeonManager> dungeon_mgr_ = nullptr;
 	std::shared_ptr<Camera> camera_ = nullptr;
 	std::shared_ptr<Player> player_ = nullptr;
+	std::shared_ptr<EnemyManager> enemy_mgr_ = nullptr;
 
 	// 地形データ
 	std::vector< std::vector<int> > terrain_data_;
