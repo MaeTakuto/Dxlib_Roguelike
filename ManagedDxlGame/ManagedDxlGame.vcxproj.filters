@@ -422,5 +422,8 @@
     <ClInclude Include="program\game\manager\enemy_manager.h">
       <Filter>program\[003] game\manager</Filter>
     </ClInclude>
+    <ClInclude Include="program\game\common\enum.h">
+      <Filter>program\[003] game\common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

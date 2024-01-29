@@ -246,6 +246,7 @@
     <ClInclude Include="program\game\character\player.h" />
     <ClInclude Include="program\game\collider\box_collider.h" />
     <ClInclude Include="program\game\common\camera.h" />
+    <ClInclude Include="program\game\common\enum.h" />
     <ClInclude Include="program\game\dungeon\dungeon_manager.h" />
     <ClInclude Include="program\game\gm_main.h" />
     <ClInclude Include="program\game\manager\enemy_manager.h" />

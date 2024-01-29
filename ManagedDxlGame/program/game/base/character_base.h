@@ -1,6 +1,6 @@
 #pragma once
 #include "../../dxlib_ext/dxlib_ext.h"
-#include "../dungeon/dungeon_manager.h"
+#include "../common/enum.h"
 
 
 class Camera;

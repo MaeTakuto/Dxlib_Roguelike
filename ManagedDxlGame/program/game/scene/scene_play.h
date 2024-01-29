@@ -1,11 +1,13 @@
 #pragma once
 #include "../base/scene_base.h"
+#include "../dungeon/dungeon_manager.h"
 
 class DungeonManager;
 class Camera;
 class Player;
 class EnemyManager;
 
+// プレイシーンクラス
 class ScenePlay : public SceneBase {
 public:
 	ScenePlay();
@@ -25,8 +27,11 @@ private:
 	std::shared_ptr<Player> player_ = nullptr;
 	std::shared_ptr<EnemyManager> enemy_mgr_ = nullptr;
 
+	// エリアデータ
+	std::vector<Area> areas_;
+
 	// 地形データ
-	std::vector< std::vector<int> > terrain_data_;
+	std::vector< std::vector<Cell> > field_;
 	std::vector< std::vector<int> > map_data_;
 
 	// マップチップの画像格納
@@ -40,7 +45,7 @@ private:
 
 		for (int y = 0; y < map_data_.size(); y++) {
 			for (int x = 0; x < map_data_[y].size(); x++) {
-				tnl::DebugTrace("%d", map_data_[y][x]);
+				tnl::DebugTrace("%d", static_cast<int>(field_[y][x].map_data));
 			}
 			tnl::DebugTrace("\n");
 		}
@@ -67,11 +72,11 @@ private:
 	// ==============================================
 
 	// 指定された座標のマップデータを返す
-	inline int getMapData(const tnl::Vector3& pos) {
+	inline eMapData getMapData(const tnl::Vector3& pos) {
 		int x = static_cast<int>(pos.x);
 		int y = static_cast<int>(pos.y);
 
-		return map_data_[y][x];
+		return field_[y][x].map_data;
 	}
 
 };

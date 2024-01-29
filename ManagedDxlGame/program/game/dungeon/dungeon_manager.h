@@ -2,31 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "../common/enum.h"
 
 class Camera;
-
-// 通路
-enum class eDir {
-	NONE = -1,
-	UP = 0,
-	DOWN,
-	LEFT,
-	RIGHT,
-	MAX
-};
-
-// マップデータ
-enum class eMapData {
-	GROUND = 0,
-	WALL,
-	PLAYER,
-	ENEMY
-};
-
-enum class ePlace {
-	ROAD = 0,
-	ROOM
-};
 
 // 区画のデータクラス
 class Rect {
@@ -39,18 +17,53 @@ public:
 
 };
 
+class Room {
+public:
+	// 区画の始点座標、終点座標
+	int x = 0;
+	int y = 0;
+	int width = 0;
+	int height = 0;
+
+	// 入口の数
+	int entrance_count = 0;
+
+	// 部屋の入口の位置
+	std::vector<tnl::Vector3> room_entrance;
+
+};
+
+// エリアデータを管理するクラス
 class Area {
 public:
 	Rect area;
-	Rect room;
-
-	// 通路が存在するかの判定
-	eDir connect_area_dir = eDir::NONE;
+	Room room;
 
 	int connect_area_index = -1;
 	bool is_connect = false;
+
+	// 通路が存在するかの判定
+	eDir connect_area_dir = eDir::NONE;
 };
 
+// 1マスのデータを管理するクラス
+class Cell {
+public:
+	// エリアの番号
+	int area_id = 0;
+
+	// 場所（ 通路なのか、部屋なのか ）
+	ePlace place = ePlace::WALL;
+
+	// マップのデータ（ 衝突判定用 ）
+	eMapData map_data = eMapData::WALL;
+
+	// 地形データ（ 床、壁 ）
+	int terrain = static_cast<int>( eMapData::WALL );
+
+};
+
+// ダンジョンの生成、管理するクラス
 class DungeonManager {
 public:
 	DungeonManager();
@@ -63,8 +76,9 @@ public:
 	const int AREA_MAX = 8;					// 最大エリア数
 	const int AREA_SPACE = 3;
 	const int ROOM_AND_ROAD_SPACE = 2;
+	const int MAX_ROOM_ENTRANCE = 3;
 
-	// ダンジョン生成、再生成
+	// ======= ダンジョン生成、再生成 ======
 	void generateDungeon();
 
 	// =============================
@@ -74,14 +88,16 @@ public:
 	// 分割したエリアデータを表示
 	void displayAreaNumber(const std::shared_ptr<Camera> camera);
 
-	inline std::vector< std::vector<int> >& getTerrainData() { return terrain_data_; }
+	// ゲッター
+	inline std::vector< std::vector<Cell> >& getTerrainData() { return terrain_data_; }
 	inline std::vector< std::vector<int> >& getMapData() { return map_data_; }
+	inline std::vector<Area>& getAreas() { return areas_; }
 
 private:
-	int area_number_[FIELD_HEIGHT][FIELD_WIDTH] = { 0 };
+	// int area_number_[FIELD_HEIGHT][FIELD_WIDTH] = { 0 };
 
 	// 地形データ
-	std::vector<std::vector<int> > terrain_data_{ FIELD_HEIGHT, std::vector<int>( FIELD_WIDTH ) };
+	std::vector<std::vector<Cell> > terrain_data_{ FIELD_HEIGHT, std::vector<Cell>( FIELD_WIDTH ) };
 	std::vector<std::vector<int> > map_data_{ FIELD_HEIGHT, std::vector<int>( FIELD_WIDTH ) };
 
 	int area_count_ = 0;

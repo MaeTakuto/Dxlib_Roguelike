@@ -16,7 +16,7 @@ EnemyManager::EnemyManager() {
 
 }
 
-// 
+// デストラクタ
 EnemyManager::~EnemyManager() {
 
 }

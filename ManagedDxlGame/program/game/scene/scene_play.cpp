@@ -15,10 +15,13 @@ ScenePlay::ScenePlay() {
 	camera_ = std::make_shared<Camera>();
 	enemy_mgr_ = std::make_shared<EnemyManager>();
 
-	terrain_data_.resize(DungeonManager::FIELD_HEIGHT);
+	field_.resize(DungeonManager::FIELD_HEIGHT);
 	map_data_.resize(DungeonManager::FIELD_HEIGHT);
+
+	areas_.resize(dungeon_mgr_->AREA_MAX);
+
 	for (int i = 0; i < DungeonManager::FIELD_HEIGHT; i++) {
-		terrain_data_[i].resize(DungeonManager::FIELD_WIDTH);
+		field_[i].resize(DungeonManager::FIELD_WIDTH);
 		map_data_[i].resize(DungeonManager::FIELD_WIDTH);
 	}
 
@@ -63,8 +66,8 @@ void ScenePlay::draw() {
 	}*/
 
 	// マップチップ描画
-	for (int y = 0; y < terrain_data_.size(); ++y) {
-		for (int x = 0; x < terrain_data_[y].size(); ++x) {
+	for (int y = 0; y < field_.size(); ++y) {
+		for (int x = 0; x < field_[y].size(); ++x) {
 			tnl::Vector3 draw_pos = tnl::Vector3{ static_cast<float>(x) * GameManager::DRAW_CHIP_SIZE, static_cast<float>(y) * GameManager::DRAW_CHIP_SIZE, 0 }
 			- camera_->getPos() + tnl::Vector3(DXE_WINDOW_WIDTH >> 1, DXE_WINDOW_HEIGHT >> 1, 0);
 
@@ -72,7 +75,18 @@ void ScenePlay::draw() {
 			DrawExtendGraph(draw_pos.x, draw_pos.y,
 				draw_pos.x + GameManager::DRAW_CHIP_SIZE,
 				draw_pos.y + GameManager::DRAW_CHIP_SIZE,
-				mapchip_gpc_hdl_[terrain_data_[y][x]], true);
+				mapchip_gpc_hdl_[field_[y][x].terrain], true);
+
+		}
+	}
+
+
+	// デバッグ（ 部屋の入口を表示 ）
+	for (int i = 0; i < areas_.size(); i++) {
+		for (int j = 0; j < areas_[i].room.entrance_count; j++) {
+			tnl::Vector3 draw_pos = areas_[i].room.room_entrance[j] * GameManager::DRAW_CHIP_SIZE - camera_->getPos() + tnl::Vector3(DXE_WINDOW_WIDTH >> 1, DXE_WINDOW_HEIGHT >> 1, 0);
+
+			DrawBox(draw_pos.x, draw_pos.y, draw_pos.x + GameManager::DRAW_CHIP_SIZE, draw_pos.y + GameManager::DRAW_CHIP_SIZE, -1, true);
 		}
 	}
 
@@ -81,7 +95,7 @@ void ScenePlay::draw() {
 
 	// ======= デバッグ ========
 	 // DrawStringEx(100, 100, -1, "シーンプレイ");
-	 dungeon_mgr_->displayAreaNumber(camera_);
+	 //dungeon_mgr_->displayAreaNumber(camera_);
 }
 
 // 
@@ -99,8 +113,9 @@ bool ScenePlay::seqGenerateDungeon(const float delta_time) {
 	
 	enemy_mgr_->deathAllEnemys();
 	dungeon_mgr_->generateDungeon();
-	terrain_data_ = dungeon_mgr_->getTerrainData();
+	field_ = dungeon_mgr_->getTerrainData();
 	map_data_ = dungeon_mgr_->getMapData();
+	areas_ = dungeon_mgr_->getAreas();
 
 	for (int y = 0; y < map_data_.size(); y++) {
 		for (int x = 0; x < map_data_[y].size(); x++) {
@@ -132,10 +147,10 @@ bool ScenePlay::seqMain(const float delta_time) {
 		main_seq_.change(&ScenePlay::seqGenerateDungeon);
 	}
 
-	// in_dungeon_seq_.update(delta_time);
-
 	camera_->control();
-	// camera_->setPos(player_->getPos());
+
+	 /*in_dungeon_seq_.update(delta_time);
+	 camera_->setPos(player_->getPos());*/
 
 
 	return true;
@@ -152,7 +167,7 @@ bool ScenePlay::seqPlayerAct(const float delta_time) {
 
 	if (player_->getActState() == eActState::ACT) {
 		
-		if ( getMapData( player_->getNextPos() ) == static_cast<int>( eMapData::WALL ) ) {
+		if ( getMapData( player_->getNextPos() ) ==  eMapData::WALL ) {
 			tnl::DebugTrace("player\n");
 			player_->collisionProcess();
 		}
