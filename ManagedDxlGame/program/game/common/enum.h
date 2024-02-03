@@ -12,6 +12,7 @@ enum class eDir {
 
 // マップデータ
 enum class eMapData {
+	NONE = -1,
 	GROUND = 0,
 	WALL,
 	PLAYER,

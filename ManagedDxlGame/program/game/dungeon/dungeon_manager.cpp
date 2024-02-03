@@ -15,17 +15,14 @@ DungeonManager::DungeonManager() {
 
 		// エリア内の部屋の変数の初期化
 		areas_[i].room.entrance_count = 0;
-		areas_[i].room.room_entrance.resize(MAX_ROOM_ENTRANCE);
-
-		for (int j = 0; j < MAX_ROOM_ENTRANCE; j++) {
-			areas_[i].room.room_entrance[j] = tnl::Vector3{ 0, 0, 0 };
-		}
 	}
 
 }
 
 // 
 DungeonManager::~DungeonManager() {
+
+	tnl::DebugTrace("DungeonManagerのデストラクタが実行されました。\n");
 
 	delete[] order_connect_rooms_;
 }
@@ -48,7 +45,7 @@ void DungeonManager::generateDungeon() {
 	}
 
 	createRoom();
-	generateField();
+	generateRoom();
 
 	order_connect_rooms_[order_index_] = rand() % area_count_;
 	areas_[ order_connect_rooms_[order_index_] ].is_connect = true;
@@ -62,6 +59,8 @@ void DungeonManager::generateDungeon() {
 	generateMapData();
 	spawnPlayer();
 	spawnEnemy();
+
+	debugEntranceData();
 
 }
 
@@ -86,9 +85,7 @@ void DungeonManager::areaDataInit() {
 
 		order_connect_rooms_[i] = 0;
 
-		for (int j = 0; j < MAX_ROOM_ENTRANCE; j++) {
-			areas_[i].room.room_entrance[j] = { 0, 0, 0 };
-		}
+		areas_[i].room.entrance.clear();
 	}
 
 	area_count_ = 1;
@@ -107,10 +104,10 @@ void DungeonManager::fieldDataInit() {
 
 	for (int y = 0; y < FIELD_HEIGHT; y++) {
 		for (int x = 0; x < FIELD_WIDTH; x++) {
-			terrain_data_[y][x].terrain = static_cast<int>(eMapData::WALL);
-			terrain_data_[y][x].map_data = eMapData::WALL;
-			terrain_data_[y][x].place = ePlace::WALL;
-			terrain_data_[y][x].area_id = 0;
+			field_[y][x].terrain_data = eMapData::WALL;
+			field_[y][x].map_data = eMapData::WALL;
+			field_[y][x].place = ePlace::WALL;
+			field_[y][x].area_id = 0;
 		}
 	}
 }
@@ -167,7 +164,7 @@ void DungeonManager::settingAreaNumber() {
 
 		for (int y = areas_[i].area.y; y < areas_[i].area.y + areas_[i].area.height; y++) {
 			for (int x = areas_[i].area.x; x < areas_[i].area.x + areas_[i].area.width; x++) {
-				terrain_data_[y][x].area_id = i;
+				field_[y][x].area_id = i;
 			}
 		}
 	}
@@ -259,7 +256,9 @@ void DungeonManager::connectRoom(int area_index) {
 			dy1 = areas_[index].room.y;
 
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx1), static_cast<float>(dy1 - 1), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(dx1), static_cast<float>(dy1 - 1), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
 			areas_[index].room.entrance_count++;
 
 			// 繋げる側の部屋の座標を決める
@@ -272,7 +271,10 @@ void DungeonManager::connectRoom(int area_index) {
 			tnl::DebugTrace("上通路作成\n");
 
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx2), static_cast<float>(areas_[index].room.y + areas_[index].room.height), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(dx2), static_cast<float>(areas_[index].room.y + areas_[index].room.height), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
+
 			areas_[index].room.entrance_count++;
 
 			connectUpAndDownRooms(dx2, dy2, dx1, dy1);
@@ -285,7 +287,10 @@ void DungeonManager::connectRoom(int area_index) {
 			dy1 = areas_[index].room.y + areas_[index].room.height - 1 - rand() % (ROOM_AND_ROAD_SPACE + 1);
 
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx1), static_cast<float>(areas_[index].room.y + areas_[index].room.height), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(dx1), static_cast<float>(areas_[index].room.y + areas_[index].room.height), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
+
 			areas_[index].room.entrance_count++;
 
 			// 繋げる側の部屋の座標を決める
@@ -297,8 +302,10 @@ void DungeonManager::connectRoom(int area_index) {
 			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
 			tnl::DebugTrace("下通路作成\n");
 
-			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx2), static_cast<float>(dy2 - 1), 0 };
+			// 部屋の入口を設定
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = (tnl::Vector3(static_cast<float>(dx2), static_cast<float>(dy2 - 1), 0));
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
 			areas_[index].room.entrance_count++;
 			
 			connectUpAndDownRooms(dx1, dy1, dx2, dy2);
@@ -310,8 +317,10 @@ void DungeonManager::connectRoom(int area_index) {
 			dx1 = areas_[index].room.x;
 			dy1 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
 
-			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx1 - 1), static_cast<float>(dy1), 0 };
+			// 部屋の入口を設定
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = ( tnl::Vector3(static_cast<float>(dx1 - 1), static_cast<float>(dy1), 0) );
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
 			areas_[index].room.entrance_count++;
 
 			// 繋げる側の部屋の座標を決める
@@ -324,7 +333,10 @@ void DungeonManager::connectRoom(int area_index) {
 			tnl::DebugTrace("左通路作成\n");
 			
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(areas_[index].room.x + areas_[index].room.width), static_cast<float>(dy2), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(areas_[index].room.x + areas_[index].room.width), static_cast<float>(dy2), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
+
 			areas_[index].room.entrance_count++;
 
 			connectLeftAndRightRooms(dx2, dy2, dx1, dy1);
@@ -337,7 +349,9 @@ void DungeonManager::connectRoom(int area_index) {
 			dy1 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
 
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(areas_[index].room.x + areas_[index].room.width), static_cast<float>(dy1), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(areas_[index].room.x + areas_[index].room.width), static_cast<float>(dy1), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
 			areas_[index].room.entrance_count++;
 
 			// 繋げる側の部屋の座標を決める
@@ -347,10 +361,13 @@ void DungeonManager::connectRoom(int area_index) {
 			dx2 = areas_[index].room.x;
 			dy2 = random(areas_[index].room.y + ROOM_AND_ROAD_SPACE, areas_[index].room.y + areas_[index].room.height - 1 - ROOM_AND_ROAD_SPACE);
 			tnl::DebugTrace("dx1 = %d, dy1 = %d, dx2 = %d, dy2 = %d\n", dx1, dy1, dx2, dy2);
-			tnl::DebugTrace("左通路作成\n");
+			tnl::DebugTrace("右通路作成\n");
 
 			// 部屋の入口の座標を設定
-			areas_[index].room.room_entrance[areas_[index].room.entrance_count] = { static_cast<float>(dx2 - 1), static_cast<float>(dy2), 0 };
+			areas_[index].room.entrance.emplace_back();
+			areas_[index].room.entrance[areas_[index].room.entrance_count].pos = tnl::Vector3(static_cast<float>(dx2 - 1), static_cast<float>(dy2), 0);
+			areas_[index].room.entrance[areas_[index].room.entrance_count].id = areas_[index].room.entrance_count;
+
 			areas_[index].room.entrance_count++;
 			
 			connectLeftAndRightRooms(dx1, dy1, dx2, dy2);
@@ -392,10 +409,10 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		y = areas_[area_index].area.y - 1;
 		ex = areas_[area_index].area.x + areas_[area_index].area.width;
 
-		for (x = areas_[area_index].area.x; x < ex; x += areas_[terrain_data_[y][x].area_id].area.width) {
+		for (x = areas_[area_index].area.x; x < ex; x += areas_[field_[y][x].area_id].area.width) {
 
 			// すでにエリアの通路が確認されていた場合、次のエリアまで跳ぶ
-			if (areas_[terrain_data_[y][x].area_id].is_connect) continue;
+			if (areas_[field_[y][x].area_id].is_connect) continue;
 
 			if (checkConnectAreaNumMax(x, y, area_index)) areas_[area_index].connect_area_dir = eDir::UP;
 		}
@@ -408,10 +425,10 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		y = areas_[area_index].area.y + areas_[area_index].area.height;
 		ex = areas_[area_index].area.x + areas_[area_index].area.width;
 
-		for (x = areas_[area_index].area.x; x < ex; x += areas_[terrain_data_[y][x].area_id].area.width) {
+		for (x = areas_[area_index].area.x; x < ex; x += areas_[field_[y][x].area_id].area.width) {
 
 			// すでにエリアの通路が確認されていた場合、次のエリアまで跳ぶ
-			if (areas_[terrain_data_[y][x].area_id].is_connect) continue;
+			if (areas_[field_[y][x].area_id].is_connect) continue;
 
 			if (checkConnectAreaNumMax(x, y, area_index)) areas_[area_index].connect_area_dir = eDir::DOWN;
 		}
@@ -425,9 +442,9 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		ey = areas_[area_index].area.y + areas_[area_index].area.height;
 
 		// 自エリアの始まりから終わりまで、x、y座標のエリア番号の高さ分代入し、左エリアの最大エリア番号を探す
-		for (y = areas_[area_index].area.y; y < ey; y += areas_[terrain_data_[y][x].area_id].area.height)
+		for (y = areas_[area_index].area.y; y < ey; y += areas_[field_[y][x].area_id].area.height)
 		{
-			if (areas_[terrain_data_[y][x].area_id].is_connect) continue;
+			if (areas_[field_[y][x].area_id].is_connect) continue;
 
 			if (checkConnectAreaNumMax(x, y, area_index)) areas_[area_index].connect_area_dir = eDir::LEFT;
 		}
@@ -441,21 +458,21 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		ey = areas_[area_index].area.y + areas_[area_index].area.height;
 
 		// 自エリアの始まりから終わりまで、x、y座標のエリア番号の高さ分代入し、左エリアの最大エリア番号を探す
-		for (y = areas_[area_index].area.y; y < ey; y += areas_[terrain_data_[y][x].area_id].area.height)
+		for (y = areas_[area_index].area.y; y < ey; y += areas_[field_[y][x].area_id].area.height)
 		{
-			if (areas_[terrain_data_[y][x].area_id].is_connect) continue;
+			if (areas_[field_[y][x].area_id].is_connect) continue;
 
 			if (checkConnectAreaNumMax(x, y, area_index)) areas_[area_index].connect_area_dir = eDir::RIGHT;
 		}
 	}
 }
 
-//
+// 
 bool DungeonManager::checkConnectAreaNumMax(int x, int y, int area_index) {
 
-	if (areas_[area_index].connect_area_index < terrain_data_[y][x].area_id) {
+	if (areas_[area_index].connect_area_index < field_[y][x].area_id) {
 
-		areas_[area_index].connect_area_index = terrain_data_[y][x].area_id;
+		areas_[area_index].connect_area_index = field_[y][x].area_id;
 		tnl::DebugTrace("隣接するエリア番号の最大値を更新。エリア番号：%d\n", areas_[area_index].connect_area_index);
 		return true;
 	}
@@ -471,16 +488,21 @@ void DungeonManager::connectUpAndDownRooms(int up_x, int up_y, int down_x, int d
 		if (abs(down_y - up_y) == 1) {
 			down_y--;
 			tnl::DebugTrace("down_y = %d\n", down_y);
-			terrain_data_[down_y][down_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[down_y][down_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].terrain_data = eMapData::GROUND;
+			field_[down_y][down_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].place = ePlace::ROAD;
 		}
 		else {
 			down_y--, up_y++;
 			tnl::DebugTrace("down_y = %d, up_y = %d\n", down_y, up_y);
-			terrain_data_[down_y][down_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[up_y][up_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[down_y][down_x].map_data = eMapData::GROUND;
-			terrain_data_[up_y][up_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].terrain_data = eMapData::GROUND;
+			field_[down_y][down_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].place = ePlace::ROAD;
+
+			if (field_[up_y][up_x].terrain_data == eMapData::GROUND) continue;
+			field_[up_y][up_x].terrain_data = eMapData::GROUND;
+			field_[up_y][up_x].map_data = eMapData::GROUND;
+			field_[up_y][up_x].place = ePlace::ROAD;
 		}
 	}
 
@@ -488,10 +510,11 @@ void DungeonManager::connectUpAndDownRooms(int up_x, int up_y, int down_x, int d
 		while (down_x != up_x) {
 			if (down_x < up_x) down_x++;
 			else down_x--;
-
+			// if (field_[down_y + 1][down_x].terrain_data == eMapData::GROUND && field_[down_y - 1][down_x].terrain_data == eMapData::GROUND) return;
 			/*if (terrain_data_[down_y][down_x] == static_cast<int>(eMapData::GROUND)) break;*/
-			terrain_data_[down_y][down_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[down_y][down_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].terrain_data = eMapData::GROUND;
+			field_[down_y][down_x].map_data = eMapData::GROUND;
+			field_[down_y][down_x].place = ePlace::ROAD;
 
 		}
 	}
@@ -503,15 +526,20 @@ void DungeonManager::connectLeftAndRightRooms(int left_x, int left_y, int right_
 	while (left_x != right_x) {
 		if (abs(left_x - right_x) == 1) {
 			left_x++;
-			terrain_data_[left_y][left_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[left_y][left_x].map_data = eMapData::GROUND;
+			field_[left_y][left_x].terrain_data = eMapData::GROUND;
+			field_[left_y][left_x].map_data = eMapData::GROUND;
+			field_[left_y][left_x].place = ePlace::ROAD;
 		}
 		else {
 			left_x++, right_x--;
-			terrain_data_[left_y][left_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[right_y][right_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[left_y][left_x].map_data = eMapData::GROUND;
-			terrain_data_[right_y][right_x].map_data = eMapData::GROUND;
+			field_[right_y][right_x].terrain_data = eMapData::GROUND;
+			field_[right_y][right_x].map_data = eMapData::GROUND;
+			field_[right_y][right_x].place = ePlace::ROAD;
+
+			if (field_[left_y][left_x].terrain_data == eMapData::GROUND) continue;
+			field_[left_y][left_x].terrain_data = eMapData::GROUND;
+			field_[left_y][left_x].map_data = eMapData::GROUND;
+			field_[left_y][left_x].place = ePlace::ROAD;
 		}
 	}
 
@@ -519,22 +547,25 @@ void DungeonManager::connectLeftAndRightRooms(int left_x, int left_y, int right_
 		while (left_y != right_y) {
 			if (left_y < right_y) left_y++;
 			else left_y--;
-			terrain_data_[left_y][left_x].terrain = static_cast<int>(eMapData::GROUND);
-			terrain_data_[left_y][left_x].map_data = eMapData::GROUND;
+			// if (field_[left_y][left_x + 1].terrain_data == eMapData::GROUND && field_[left_y][left_x - 1].terrain_data == eMapData::GROUND) return;
+			field_[left_y][left_x].terrain_data = eMapData::GROUND;
+			field_[left_y][left_x].map_data = eMapData::GROUND;
+			field_[left_y][left_x].place = ePlace::ROAD;
 		}
 	}
 }
 
 // フィールドを作成
-void DungeonManager::generateField() {
+void DungeonManager::generateRoom() {
 
 	for (int i = 0; i < area_count_; i++) {
 
 		tnl::DebugTrace("area = %d, x = %d, y = %d, width = %d, height = %d\n", i, areas_[i].room.x, areas_[i].room.y, areas_[i].room.width, areas_[i].room.height);
 		for (int y = areas_[i].room.y; y < areas_[i].room.y + areas_[i].room.height; y++) {
 			for (int x = areas_[i].room.x; x < areas_[i].room.x + areas_[i].room.width; x++) {
-				terrain_data_[y][x].terrain = static_cast<int>(eMapData::GROUND);
-				terrain_data_[y][x].map_data = eMapData::GROUND;
+				field_[y][x].terrain_data = eMapData::GROUND;
+				field_[y][x].map_data = eMapData::GROUND;
+				field_[y][x].place = ePlace::ROOM;
 			}
 		}
 	}
@@ -548,7 +579,7 @@ void DungeonManager::displayAreaNumber(const std::shared_ptr<Camera> camera) {
 	for (int y = 0; y < FIELD_HEIGHT; y++) {
 		for (int x = 0; x < FIELD_WIDTH; x++) {
 			tnl::Vector3 draw_pos = tnl::Vector3{ static_cast<float>(x * 20), static_cast<float>(y * 20), 0 } - camera->getPos();
-			DrawStringEx(draw_pos.x, draw_pos.y, -1, "%d", terrain_data_[y][x].area_id);
+			DrawStringEx(draw_pos.x, draw_pos.y, -1, "%d", field_[y][x].area_id);
 		}
 	}
 }
@@ -556,14 +587,14 @@ void DungeonManager::displayAreaNumber(const std::shared_ptr<Camera> camera) {
 // 
 void DungeonManager::generateMapData() {
 
-	for (int y = 0; y < terrain_data_.size(); y++) {
-		for (int x = 0; x < terrain_data_[y].size(); x++) {
-			map_data_[y][x] = static_cast<int>(terrain_data_[y][x].place);
+	for (int y = 0; y < field_.size(); y++) {
+		for (int x = 0; x < field_[y].size(); x++) {
+			map_data_[y][x] = static_cast<int>(field_[y][x].place);
 		}
 	}
 }
 
-// 
+// プレイヤーの生成位置を決める
 void DungeonManager::spawnPlayer() {
 
 	int area_index = rand() % area_count_;
@@ -572,24 +603,24 @@ void DungeonManager::spawnPlayer() {
 	int spawn_y = rand() % areas_[area_index].room.height + areas_[area_index].room.y;
 
 	tnl::DebugTrace("player x = %d, y = %d\n", spawn_x, spawn_y);
-	map_data_[spawn_y][spawn_x] = static_cast<int>( eMapData::PLAYER );
+	field_[spawn_y][spawn_x].map_data = eMapData::PLAYER;
 
 }
 
-// 
+// 敵の生成位置を決める
 void DungeonManager::spawnEnemy() {
 
 	int spawn_num = 0;
 
-	while (spawn_num < 8) {
+	while (spawn_num < ENEMY_MAX_INIT_SPAWN) {
 		int area_index = rand() % area_count_;
 
 		int spawn_x = rand() % areas_[area_index].room.width + areas_[area_index].room.x;
 		int spawn_y = rand() % areas_[area_index].room.height + areas_[area_index].room.y;
 
-		if (map_data_[spawn_y][spawn_x] == static_cast<int>(eMapData::GROUND)) {
+		if (field_[spawn_y][spawn_x].map_data == eMapData::GROUND) {
 			tnl::DebugTrace("enemy[%d] x = %d, y = %d\n", spawn_num, spawn_x, spawn_y);
-			map_data_[spawn_y][spawn_x] = static_cast<int>(eMapData::ENEMY);
+			field_[spawn_y][spawn_x].map_data = eMapData::ENEMY;
 			spawn_num++;
 		}
 	}

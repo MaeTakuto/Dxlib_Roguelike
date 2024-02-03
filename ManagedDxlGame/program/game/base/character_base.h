@@ -8,7 +8,7 @@ class Camera;
 // ƒLƒƒƒ‰‚Ìs“®ó‘Ô
 enum class eActState {
 	IDLE,
-	ACT,
+	MOVE,
 	ATTACK,
 	END
 };

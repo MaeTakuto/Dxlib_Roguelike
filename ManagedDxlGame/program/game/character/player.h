@@ -38,6 +38,7 @@ private:
 
 	bool seqIdle(const float delta_time);
 	bool seqCheckCollision(const float delta_time);
+	bool seqActionStundby(const float delta_time);
 	bool seqMove(const float delta_time);
 
 };

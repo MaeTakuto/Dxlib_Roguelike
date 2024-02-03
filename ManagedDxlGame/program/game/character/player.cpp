@@ -57,31 +57,36 @@ bool Player::seqIdle(const float delta_time) {
 	// ˆÚ“®“ü—Í
 	if (tnl::Input::IsKeyDown(eKeys::KB_W, eKeys::KB_UP)) {
 		dir_ = eDir::UP;
-		act_state_ = eActState::ACT;
+		act_state_ = eActState::MOVE;
 		next_pos_.y += -1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_S, eKeys::KB_DOWN))	{
 		dir_ = eDir::DOWN;
-		act_state_ = eActState::ACT;
+		act_state_ = eActState::MOVE;
 		next_pos_.y +=  1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_A, eKeys::KB_LEFT))	{ 
 		dir_ = eDir::LEFT;
-		act_state_ = eActState::ACT;
+		act_state_ = eActState::MOVE;
 		next_pos_.x += -1;
 		sequence_.change(&Player::seqMove);
 		return true;
 	}
 	if (tnl::Input::IsKeyDown(eKeys::KB_D, eKeys::KB_RIGHT)) {
 		dir_ = eDir::RIGHT;
-		act_state_ = eActState::ACT;
+		act_state_ = eActState::MOVE;
 		next_pos_.x +=  1;
 		sequence_.change(&Player::seqMove);
 		return true;
+	}
+
+	if (tnl::Input::IsKeyDown(eKeys::KB_LSHIFT)) {
+		act_state_ = eActState::MOVE;
+		sequence_.change(&Player::seqMove);
 	}
 
 	return true;

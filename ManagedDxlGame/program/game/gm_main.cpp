@@ -7,7 +7,7 @@
 #include "gm_main.h"
 #include "manager/gm_manager.h"
 #include "manager/resource_manager.h"
-#include "scene/scene_play.h"
+#include "scene/scene_title.h"
 
 
 //------------------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ void gameStart() {
 	srand(time(0));
 	SetBackgroundColor(32, 32, 32);
 
-	GameManager::GetInstance(std::make_shared<ScenePlay>());
+	GameManager::GetInstance(std::make_shared<SceneTitle>());
 }
 
 

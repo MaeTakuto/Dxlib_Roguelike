@@ -17,6 +17,12 @@ public:
 
 };
 
+class Entrance {
+public:
+	tnl::Vector3 pos = { 0, 0, 0 };
+	int id = 0;
+};
+
 class Room {
 public:
 	// 区画の始点座標、終点座標
@@ -29,7 +35,7 @@ public:
 	int entrance_count = 0;
 
 	// 部屋の入口の位置
-	std::vector<tnl::Vector3> room_entrance;
+	std::vector<Entrance> entrance;
 
 };
 
@@ -59,7 +65,7 @@ public:
 	eMapData map_data = eMapData::WALL;
 
 	// 地形データ（ 床、壁 ）
-	int terrain = static_cast<int>( eMapData::WALL );
+	eMapData terrain_data = eMapData::WALL;
 
 };
 
@@ -77,6 +83,7 @@ public:
 	const int AREA_SPACE = 3;
 	const int ROOM_AND_ROAD_SPACE = 2;
 	const int MAX_ROOM_ENTRANCE = 3;
+	const int ENEMY_MAX_INIT_SPAWN = 3;
 
 	// ======= ダンジョン生成、再生成 ======
 	void generateDungeon();
@@ -87,9 +94,20 @@ public:
 
 	// 分割したエリアデータを表示
 	void displayAreaNumber(const std::shared_ptr<Camera> camera);
+	void debugEntranceData() {
+
+		for (int i = 0; i < areas_.size(); i++) {
+			tnl::DebugTrace("========== area = %d ==========\n", i);
+			for (int j = 0; j < areas_[i].room.entrance.size(); j++) {
+				tnl::DebugTrace("entrance[%d].pos = %c\n", j, areas_[i].room.entrance[j].pos.toString().c_str());
+				tnl::DebugTrace("entrance[%d].id = %d\n", j, areas_[i].room.entrance[j].id);
+			}
+			tnl::DebugTrace("\n");
+		}
+	}
 
 	// ゲッター
-	inline std::vector< std::vector<Cell> >& getTerrainData() { return terrain_data_; }
+	inline std::vector< std::vector<Cell> >& getField() { return field_; }
 	inline std::vector< std::vector<int> >& getMapData() { return map_data_; }
 	inline std::vector<Area>& getAreas() { return areas_; }
 
@@ -97,7 +115,7 @@ private:
 	// int area_number_[FIELD_HEIGHT][FIELD_WIDTH] = { 0 };
 
 	// 地形データ
-	std::vector<std::vector<Cell> > terrain_data_{ FIELD_HEIGHT, std::vector<Cell>( FIELD_WIDTH ) };
+	std::vector<std::vector<Cell> > field_{ FIELD_HEIGHT, std::vector<Cell>( FIELD_WIDTH ) };
 	std::vector<std::vector<int> > map_data_{ FIELD_HEIGHT, std::vector<int>( FIELD_WIDTH ) };
 
 	int area_count_ = 0;
@@ -129,7 +147,7 @@ private:
 	// =========================
 
 	// フィールド作成
-	void generateField();
+	void generateRoom();
 
 	void getNextConnectRoomIndex(int area_index);
 
