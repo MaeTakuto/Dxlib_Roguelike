@@ -39,9 +39,6 @@
     <Filter Include="program\[003] game\common">
       <UniqueIdentifier>{a6b896f8-1e05-4e25-9ec7-182e69f2dae6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="program\[003] game\collider">
-      <UniqueIdentifier>{30df7f28-3448-4557-924b-925dd33bceee}</UniqueIdentifier>
-    </Filter>
     <Filter Include="program\[003] game\dungeon">
       <UniqueIdentifier>{724c687c-77ca-4dbe-ab39-b92c36d16c92}</UniqueIdentifier>
     </Filter>
@@ -194,17 +191,8 @@
     <ClCompile Include="program\game\scene\scene_title.cpp">
       <Filter>program\[003] game\scene</Filter>
     </ClCompile>
-    <ClCompile Include="program\game\base\gm_object2d_base.cpp">
-      <Filter>program\[003] game\base</Filter>
-    </ClCompile>
-    <ClCompile Include="program\game\base\gm_object3d_base.cpp">
-      <Filter>program\[003] game\base</Filter>
-    </ClCompile>
     <ClCompile Include="program\game\common\camera.cpp">
       <Filter>program\[003] game\common</Filter>
-    </ClCompile>
-    <ClCompile Include="program\game\collider\box_collidercpp.cpp">
-      <Filter>program\[003] game\collider</Filter>
     </ClCompile>
     <ClCompile Include="program\game\dungeon\dungeon_manager.cpp">
       <Filter>program\[003] game\dungeon</Filter>
@@ -395,17 +383,8 @@
     <ClInclude Include="program\game\scene\scene_title.h">
       <Filter>program\[003] game\scene</Filter>
     </ClInclude>
-    <ClInclude Include="program\game\base\gm_object2d_base.h">
-      <Filter>program\[003] game\base</Filter>
-    </ClInclude>
-    <ClInclude Include="program\game\base\gm_object3d_base.h">
-      <Filter>program\[003] game\base</Filter>
-    </ClInclude>
     <ClInclude Include="program\game\common\camera.h">
       <Filter>program\[003] game\common</Filter>
-    </ClInclude>
-    <ClInclude Include="program\game\collider\box_collider.h">
-      <Filter>program\[003] game\collider</Filter>
     </ClInclude>
     <ClInclude Include="program\game\dungeon\dungeon_manager.h">
       <Filter>program\[003] game\dungeon</Filter>

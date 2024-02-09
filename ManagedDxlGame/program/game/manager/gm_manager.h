@@ -11,6 +11,10 @@ public:
 	static constexpr int CHIP_SIZE = 32;									// 画像チップサイズ
 	static constexpr int DRAW_CHIP_SIZE = CHIP_SIZE / 2;					// オブジェクトの表示サイズ
 
+	// ダンジョンのサイズ
+	static constexpr int FIELD_WIDTH = 64;
+	static constexpr int FIELD_HEIGHT = 32;
+
 	// ゲームマネージャーのアドレスを返す
 	static GameManager* GetInstance(std::shared_ptr<SceneBase> = nullptr);
 

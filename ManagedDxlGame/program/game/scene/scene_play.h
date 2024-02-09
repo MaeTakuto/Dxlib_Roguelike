@@ -145,17 +145,6 @@ public:
 		return areas_[area_id].room.entrance;
 	}
 
-	/*inline int getRoomEntranceIndex(int area_id, const tnl::Vector3& pos) {
-		
-		int entrance_index = -1;
-
-		for (int i = 0; i < areas_[area_id].room.entrance.size(); i++) {
-			
-		}
-
-		return ;
-	}*/
-
 	// 
 	inline const tnl::Vector3& getPlayerPos() { return player_->getPos(); }
 

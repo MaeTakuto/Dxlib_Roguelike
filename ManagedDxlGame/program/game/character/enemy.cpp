@@ -1,6 +1,4 @@
 #include "../../dxlib_ext/dxlib_ext.h"
-#include "../manager/gm_manager.h"
-#include "../scene/scene_play.h"
 #include "../manager/resource_manager.h"
 #include "../common/camera.h"
 #include "enemy.h"
@@ -28,6 +26,7 @@ Enemy::Enemy() {
 
 	dir_ = eDir::DOWN;
 	act_state_ = eActState::IDLE;
+	nodes_ = new Node[8];
 
 	is_alive_ = true;
 	is_collision_ = false;
@@ -114,14 +113,15 @@ void Enemy::onRoadAction() {
 		action_error_ = 0;
 	}
 
-	std::vector<eDir> directions = getNearbyMapData( pos_, eMapData::PLAYER );
+	std::vector<eDir> directions;
+	//std::vector<eDir> directions = getNearbyMapData( pos_, eMapData::PLAYER );
 
-	// プレイヤーが隣接していた場合
-	if (directions.size() != 0) {
-		// 攻撃決定処理
-		action_error_++;
-		return;
-	}
+	//// プレイヤーが隣接していた場合
+	//if (directions.size() != 0) {
+	//	// 攻撃決定処理
+	//	action_error_++;
+	//	return;
+	//}
 
 	// 地面がある方向を取得する
 	directions = getNearbyMapData( pos_, eMapData::GROUND );
@@ -164,57 +164,59 @@ void Enemy::moveToTarget() {
 	auto scene_play = scene_play_.lock();
 	if (scene_play == nullptr) return;
 
-	// ターゲットの位置が x 座標より y 座標の方が遠い場合
-	if (abs(target_pos_.y - pos_.y) >= abs(target_pos_.x - pos_.x)) {
-		// y 方向を確認
-		if (target_pos_.y - pos_.y > 0) {
-			if (scene_play->getMapData(tnl::Vector3(pos_.x, pos_.y + 1, pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::DOWN);
-		}
-		else if (target_pos_.y - pos_.y < 0)
-		{
-			if (scene_play->getMapData(tnl::Vector3(pos_.x, pos_.y - 1, pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::UP);
+	// 8方向
+	tnl::Vector2i dir[DIR_MAX] = { tnl::Vector2i::up, tnl::Vector2i::down, tnl::Vector2i::left, tnl::Vector2i::right,
+								   tnl::Vector2i(-1, -1), tnl::Vector2i(1, -1), tnl::Vector2i(-1, 1), tnl::Vector2i(1, 1) };
+
+	for (int i = 0; i < DIR_MAX; ++i) {
+		nodes_[i].pos_ = tnl::Vector2i(pos_.x, pos_.y) + dir[i];
+
+		// マスのコストを設定する。
+		nodes_[i].cost_ = abs(target_pos_.x - nodes_[i].pos_.x) + abs(target_pos_.y - nodes_[i].pos_.y);
+		nodes_[i].is_enable_ = false;
+
+		if (!isEnableMapPosition(nodes_[i].pos_)) continue;
+
+		// 斜めのセルの確認
+		if ( (nodes_[i].pos_.x - pos_.x) != 0 && (nodes_[i].pos_.y - pos_.y) != 0) {
+
+			if (scene_play->getMapData(tnl::Vector3(nodes_[i].pos_.x, nodes_[i].pos_.y, 0)) != eMapData::GROUND) continue;;
+			if ( !isEnableMapPosition( tnl::Vector2i((pos_.x + dir[i].x), pos_.y) ) || scene_play->getMapData( tnl::Vector3(pos_.x + dir[i].x, pos_.y, 0) ) == eMapData::WALL ) continue;
+			if ( !isEnableMapPosition( tnl::Vector2i(pos_.x, (pos_.y + dir[i].y)) ) || scene_play->getMapData( tnl::Vector3(pos_.x, pos_.y + dir[i].y, 0) ) == eMapData::WALL ) continue;
+			nodes_[i].is_enable_ = true;
+			continue;
 		}
 
-		// x 方向を確認
-		if (target_pos_.x - pos_.x > 0) {
-			if (scene_play->getMapData(tnl::Vector3(next_pos_.x + 1, next_pos_.y, next_pos_.z)) == eMapData::GROUND
-				&& scene_play->getMapData(tnl::Vector3(pos_.x + 1, pos_.y, pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::RIGHT);
-		}
-		else if (target_pos_.x - pos_.x < 0)
-		{
-			if (scene_play->getMapData(tnl::Vector3(next_pos_.x - 1, next_pos_.y, next_pos_.z)) == eMapData::GROUND
-				&& scene_play->getMapData(tnl::Vector3(pos_.x - 1, pos_.y, pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::LEFT);
-		}
-	}
-	// ターゲットの位置が x 座標より y 座標の方が遠い場合
-	else {
-		// x 方向を確認
-		if (target_pos_.x - pos_.x > 0) {
-			if (scene_play->getMapData(tnl::Vector3(pos_.x + 1, pos_.y, pos_.z)) == eMapData::GROUND ) setNextPosInDir(eDir::RIGHT);
-		}
-		else if (target_pos_.x - pos_.x < 0)
-		{
-			if (scene_play->getMapData(tnl::Vector3(pos_.x - 1, pos_.y, pos_.z)) == eMapData::GROUND ) setNextPosInDir(eDir::LEFT);
-		}
-
-		// y 方向を確認
-		if (target_pos_.y - pos_.y > 0) {
-			if (scene_play->getMapData(tnl::Vector3(pos_.x, pos_.y + 1, pos_.z)) == eMapData::GROUND
-				&& scene_play->getMapData(tnl::Vector3(next_pos_.x, next_pos_.y + 1, next_pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::DOWN);
-		}
-		else if (target_pos_.y - pos_.y < 0)
-		{
-			if (scene_play->getMapData(tnl::Vector3(pos_.x, pos_.y - 1, pos_.z)) == eMapData::GROUND
-				&& scene_play->getMapData(tnl::Vector3(next_pos_.x, next_pos_.y - 1, next_pos_.z)) == eMapData::GROUND) setNextPosInDir(eDir::UP);
-		}
+		if(scene_play->getMapData(tnl::Vector3(nodes_[i].pos_.x, nodes_[i].pos_.y, 0)) == eMapData::GROUND) nodes_[i].is_enable_ = true;
 	}
 
-	// target_pos_ と同じ位置になった場合
-	if ((target_pos_ - next_pos_).length() <= FLT_EPSILON) {
-		is_target_pos_ = false;
-	}
+	Node* next_node = getMinimunScoreNodeForEnabled();
+	next_pos_ = tnl::Vector3(next_node->pos_.x, next_node->pos_.y, 0);
 
+	// 方向の設定
+	if((next_pos_.y - pos_.y) > 0 ) dir_ = eDir::DOWN;
+	else if ((next_pos_.y - pos_.y) < 0) dir_ = eDir::UP;
+	else if ((next_pos_.x - pos_.x) > 0) dir_ = eDir::RIGHT;
+	else if ((next_pos_.x - pos_.x) < 0) dir_ = eDir::LEFT;
+
+	if (scene_play->getPlace(next_pos_) == ePlace::ROAD) is_target_pos_ = false;
 	changeToMoveAction();
+}
+
+// =====================================================================================
+// ターゲットを探し、moveToTarget() を実行する。
+// =====================================================================================
+Node* Enemy::getMinimunScoreNodeForEnabled() {
+	Node* p = nullptr;
+
+	for (int i = 0; i < DIR_MAX; ++i) {
+		if (nodes_[i].is_enable_ == false) continue;
+		if (nullptr == p) p = &nodes_[i];
+		if (p->cost_ > nodes_[i].cost_) p = &nodes_[i];
+	}
+
+	return p;
+
 }
 
 // =====================================================================================

@@ -32,6 +32,8 @@ public:
 		next_pos_ = pos_;
 	}
 
+	inline void takeDamage(int damage) override {}
+
 private:
 
 	tnl::Sequence<Player> sequence_ = tnl::Sequence<Player>(this, &Player::seqIdle);

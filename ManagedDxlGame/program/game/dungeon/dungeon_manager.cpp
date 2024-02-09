@@ -1,4 +1,5 @@
 #include "../../dxlib_ext/dxlib_ext.h"
+#include "../manager/gm_manager.h"
 #include "dungeon_manager.h"
 #include "../common/camera.h"
 
@@ -92,8 +93,8 @@ void DungeonManager::areaDataInit() {
 
 	areas_[0].area.x = 0;
 	areas_[0].area.y = 0;
-	areas_[0].area.width = FIELD_WIDTH;
-	areas_[0].area.height = FIELD_HEIGHT;
+	areas_[0].area.width = GameManager::FIELD_WIDTH;
+	areas_[0].area.height = GameManager::FIELD_HEIGHT;
 	
 	order_index_ = 0;
 	connect_error_count_ = 0;
@@ -102,8 +103,8 @@ void DungeonManager::areaDataInit() {
 // フィールドデータの初期化
 void DungeonManager::fieldDataInit() {
 
-	for (int y = 0; y < FIELD_HEIGHT; y++) {
-		for (int x = 0; x < FIELD_WIDTH; x++) {
+	for (int y = 0; y < GameManager::FIELD_HEIGHT; y++) {
+		for (int x = 0; x < GameManager::FIELD_WIDTH; x++) {
 			field_[y][x].terrain_data = eMapData::WALL;
 			field_[y][x].map_data = eMapData::WALL;
 			field_[y][x].place = ePlace::WALL;
@@ -418,7 +419,7 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		}
 	}
 	// -------- 下側 --------
-	if (areas_[area_index].area.y + areas_[area_index].area.height < FIELD_HEIGHT) {
+	if (areas_[area_index].area.y + areas_[area_index].area.height < GameManager::FIELD_HEIGHT) {
 
 		tnl::DebugTrace("下確認\n");
 
@@ -450,7 +451,7 @@ void DungeonManager::getNextConnectRoomIndex(int area_index) {
 		}
 	}
 	// -------- 右側 --------
-	if (areas_[area_index].area.x + areas_[area_index].area.width < FIELD_WIDTH) {
+	if (areas_[area_index].area.x + areas_[area_index].area.width < GameManager::FIELD_WIDTH) {
 
 		tnl::DebugTrace("右確認\n");
 
@@ -576,8 +577,8 @@ void DungeonManager::displayAreaNumber(const std::shared_ptr<Camera> camera) {
 
 	SetFontSize(DEFAULT_FONT_SIZE);
 
-	for (int y = 0; y < FIELD_HEIGHT; y++) {
-		for (int x = 0; x < FIELD_WIDTH; x++) {
+	for (int y = 0; y < GameManager::FIELD_HEIGHT; y++) {
+		for (int x = 0; x < GameManager::FIELD_WIDTH; x++) {
 			tnl::Vector3 draw_pos = tnl::Vector3{ static_cast<float>(x * 20), static_cast<float>(y * 20), 0 } - camera->getPos();
 			DrawStringEx(draw_pos.x, draw_pos.y, -1, "%d", field_[y][x].area_id);
 		}

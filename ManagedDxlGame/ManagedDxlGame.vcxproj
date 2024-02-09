@@ -174,12 +174,9 @@
     <ClCompile Include="program\dxlib_ext\dxlib_ext_shadow_map.cpp" />
     <ClCompile Include="program\dxlib_ext\dxlib_ext_texture.cpp" />
     <ClCompile Include="program\dxlib_ext\OBJLoader.cpp" />
-    <ClCompile Include="program\game\base\gm_object2d_base.cpp" />
-    <ClCompile Include="program\game\base\gm_object3d_base.cpp" />
     <ClCompile Include="program\game\base\scene_base.cpp" />
     <ClCompile Include="program\game\character\enemy.cpp" />
     <ClCompile Include="program\game\character\player.cpp" />
-    <ClCompile Include="program\game\collider\box_collidercpp.cpp" />
     <ClCompile Include="program\game\common\camera.cpp" />
     <ClCompile Include="program\game\dungeon\dungeon_manager.cpp" />
     <ClCompile Include="program\game\gm_main.cpp" />
@@ -239,12 +236,9 @@
     <ClInclude Include="program\dxlib_ext\example\dxlib_ext_example_utl_single_oscillationy.h" />
     <ClInclude Include="program\dxlib_ext\OBJLoader.h" />
     <ClInclude Include="program\game\base\character_base.h" />
-    <ClInclude Include="program\game\base\gm_object2d_base.h" />
-    <ClInclude Include="program\game\base\gm_object3d_base.h" />
     <ClInclude Include="program\game\base\scene_base.h" />
     <ClInclude Include="program\game\character\enemy.h" />
     <ClInclude Include="program\game\character\player.h" />
-    <ClInclude Include="program\game\collider\box_collider.h" />
     <ClInclude Include="program\game\common\camera.h" />
     <ClInclude Include="program\game\common\enum.h" />
     <ClInclude Include="program\game\dungeon\dungeon_manager.h" />

@@ -16,14 +16,14 @@ ScenePlay::ScenePlay() {
 	enemy_mgr_ = std::make_shared<EnemyManager>();
 	// enemy_mgr_->setScenePlay(dynamic_pointer_cast<ScenePlay>( GameManager::GetInstance()->getSceneInstance()));
 
-	field_.resize(DungeonManager::FIELD_HEIGHT);
-	map_data_.resize(DungeonManager::FIELD_HEIGHT);
+	field_.resize(GameManager::FIELD_HEIGHT);
+	map_data_.resize(GameManager::FIELD_HEIGHT);
 
 	areas_.resize(dungeon_mgr_->AREA_MAX);
 
-	for (int i = 0; i < DungeonManager::FIELD_HEIGHT; i++) {
-		field_[i].resize(DungeonManager::FIELD_WIDTH);
-		map_data_[i].resize(DungeonManager::FIELD_WIDTH);
+	for (int i = 0; i < GameManager::FIELD_HEIGHT; i++) {
+		field_[i].resize(GameManager::FIELD_WIDTH);
+		map_data_[i].resize(GameManager::FIELD_WIDTH);
 	}
 
 	player_ = std::make_shared<Player>();
@@ -159,7 +159,8 @@ bool ScenePlay::seqMain(const float delta_time) {
 
 	if (tnl::Input::IsKeyDownTrigger(eKeys::KB_SPACE)) {
 		main_seq_.change(&ScenePlay::seqGenerateDungeon);
-		// in_dungeon_seq_.change(&ScenePlay::seqPlayerAct);
+		in_dungeon_seq_.change(&ScenePlay::seqPlayerAct);
+		player_->beginAct();
 	}
 
 	// camera_->control();

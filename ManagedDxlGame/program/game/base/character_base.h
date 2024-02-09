@@ -2,8 +2,9 @@
 #include "../../dxlib_ext/dxlib_ext.h"
 #include "../common/enum.h"
 
-
 class Camera;
+
+const int DIR_MAX = 8;
 
 // ƒLƒƒƒ‰‚Ìs“®ó‘Ô
 enum class eActState {
@@ -31,6 +32,8 @@ public:
 	virtual const eActState& getActState() = 0;
 
 	virtual void collisionProcess() = 0;
+
+	virtual void takeDamage(int damage) = 0;
 
 protected:
 	const float MOVE_SPEED = 0.25f;

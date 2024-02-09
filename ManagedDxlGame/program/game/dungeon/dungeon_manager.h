@@ -75,15 +75,13 @@ public:
 	DungeonManager();
 	~DungeonManager();
 
-	static constexpr int FIELD_WIDTH = 64;
-	static constexpr int FIELD_HEIGHT = 32;
 	const int AREA_MAX_SIZE = 32;
 	const int AREA_MIN_SIZE = 16;
 	const int AREA_MAX = 8;					// 最大エリア数
 	const int AREA_SPACE = 3;
 	const int ROOM_AND_ROAD_SPACE = 2;
 	const int MAX_ROOM_ENTRANCE = 3;
-	const int ENEMY_MAX_INIT_SPAWN = 3;
+	const int ENEMY_MAX_INIT_SPAWN = 6;
 
 	// ======= ダンジョン生成、再生成 ======
 	void generateDungeon();
@@ -115,8 +113,8 @@ private:
 	// int area_number_[FIELD_HEIGHT][FIELD_WIDTH] = { 0 };
 
 	// 地形データ
-	std::vector<std::vector<Cell> > field_{ FIELD_HEIGHT, std::vector<Cell>( FIELD_WIDTH ) };
-	std::vector<std::vector<int> > map_data_{ FIELD_HEIGHT, std::vector<int>( FIELD_WIDTH ) };
+	std::vector<std::vector<Cell> > field_{ GameManager::FIELD_HEIGHT, std::vector<Cell>( GameManager::FIELD_WIDTH ) };
+	std::vector<std::vector<int> > map_data_{ GameManager::FIELD_HEIGHT, std::vector<int>( GameManager::FIELD_WIDTH ) };
 
 	int area_count_ = 0;
 	std::vector<Area> areas_;
